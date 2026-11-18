@@ -1,4 +1,4 @@
-const GOATCOUNTER_CODE = "lakshan-prasad";
+const GOATCOUNTER_CODE = "Lakshan-Prasad";
 
 (function addScrollReveal() {
   document.documentElement.classList.add("js-motion");
@@ -27,36 +27,31 @@ const GOATCOUNTER_CODE = "lakshan-prasad";
   const captionElement = document.getElementById("visits-caption");
   const code = GOATCOUNTER_CODE.trim().toLowerCase();
 
-  if (!code) {
+  if (!countElement || !captionElement || !code) {
     captionElement.textContent = "Counter not configured";
     return;
   }
 
-  const endpoint = `https://${code}.goatcounter.com`;
+  const endpoint = "https://" + code + ".goatcounter.com";
+  const path = window.location.pathname || "/";
   const counterScript = document.createElement("script");
   counterScript.src = "https://gc.zgo.at/count.js";
   counterScript.async = true;
-  counterScript.dataset.goatcounter = `${endpoint}/count`;
+  counterScript.dataset.goatcounter = endpoint + "/count";
+  document.head.appendChild(counterScript);
 
-  counterScript.addEventListener("load", async () => {
-    try {
-      const trackingData = window.goatcounter && typeof window.goatcounter.get_data === "function"
-        ? window.goatcounter.get_data()
-        : {};
-      const path = trackingData.p || window.location.pathname;
-      const response = await fetch(`${endpoint}/counter/${encodeURIComponent(path)}.json`);
+  // The visible total should still load if a browser blocks count.js.
+  fetch(endpoint + "/counter/" + encodeURIComponent(path) + ".json")
+    .then((response) => {
       if (!response.ok) throw new Error("GoatCounter did not return a count.");
-      const result = await response.json();
+      return response.json();
+    })
+    .then((result) => {
+      if (result.count === undefined) throw new Error("GoatCounter returned no count.");
       countElement.textContent = result.count;
       captionElement.textContent = "total visits";
-    } catch {
-      captionElement.textContent = "Check counter setup";
-    }
-  }, { once: true });
-
-  counterScript.addEventListener("error", () => {
-    captionElement.textContent = "Check counter setup";
-  }, { once: true });
-
-  document.head.appendChild(counterScript);
+    })
+    .catch(() => {
+      captionElement.textContent = "Check GoatCounter setup";
+    });
 })();
