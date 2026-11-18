@@ -1,4 +1,4 @@
-const GOATCOUNTER_CODE = "Lakshan-Prasad";
+const GOATCOUNTER_CODE = "lakshan-prasad";
 
 (function addScrollReveal() {
   document.documentElement.classList.add("js-motion");
